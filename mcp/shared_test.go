@@ -15,7 +15,7 @@ import (
 
 func TestMetaMarshal(t *testing.T) {
 	// Verify that Meta values round-trip.
-	for _, meta := range []Meta{
+	for _, meta := range []ParamsMeta{
 		{Data: nil, ProgressToken: nil},
 		{Data: nil, ProgressToken: "p"},
 		{Data: map[string]any{"d": true}, ProgressToken: nil},
@@ -29,15 +29,15 @@ func TestMetaMarshal(t *testing.T) {
 
 	// Check errors.
 	for _, tt := range []struct {
-		meta Meta
+		meta ParamsMeta
 		want string
 	}{
 		{
-			Meta{Data: map[string]any{"progressToken": "p"}, ProgressToken: 1},
+			ParamsMeta{Data: map[string]any{"progressToken": "p"}, ProgressToken: 1},
 			"duplicate",
 		},
 		{
-			Meta{ProgressToken: true},
+			ParamsMeta{ProgressToken: true},
 			"bad type",
 		},
 	} {
@@ -49,9 +49,9 @@ func TestMetaMarshal(t *testing.T) {
 
 	// Accept progressToken in map if the field is nil.
 	// It will unmarshal by populating ProgressToken.
-	meta := Meta{Data: map[string]any{"progressToken": "p"}}
+	meta := ParamsMeta{Data: map[string]any{"progressToken": "p"}}
 	got := roundTrip(t, meta)
-	want := Meta{ProgressToken: "p"}
+	want := ParamsMeta{ProgressToken: "p"}
 	if !cmp.Equal(got, want) {
 		t.Errorf("got %+v, want %+v", got, want)
 	}
