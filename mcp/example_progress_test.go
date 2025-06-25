@@ -24,7 +24,7 @@ func Example_progressMiddleware() {
 func addProgressToken[S mcp.Session](h mcp.MethodHandler[S]) mcp.MethodHandler[S] {
 	return func(ctx context.Context, s S, method string, params mcp.Params) (result mcp.Result, err error) {
 		if rp, ok := params.(mcp.RequestParams); ok {
-			*rp.GetProgressToken() = nextProgressToken.Add(1)
+			rp.SetProgressToken(nextProgressToken.Add(1))
 		}
 		return h(ctx, s, method, params)
 	}
