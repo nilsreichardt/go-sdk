@@ -15,7 +15,7 @@ Fixes #12345
 Notably, for the subject (the first line of description):
 
 - the name of the package affected by the change goes before the colon
-- the part after the colon uses the verb tense + phrase that completes the blank in, “this change modifies Go to ___________”
+- the part after the colon uses the verb tense + phrase that completes the blank in, “this change modifies this package to ___________”
 - the verb after the colon is lowercase
 - there is no trailing period
 - it should be kept as short as possible
