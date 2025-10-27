@@ -690,10 +690,11 @@ func TestStreamableServerTransport(t *testing.T) {
 	}
 
 	tests := []struct {
-		name     string
-		replay   bool // if set, use a MemoryEventStore to enable stream replay
-		tool     func(*testing.T, context.Context, *ServerSession)
-		requests []streamableRequest // http requests
+		name         string
+		replay       bool // if set, use a MemoryEventStore to enable stream replay
+		tool         func(*testing.T, context.Context, *ServerSession)
+		requests     []streamableRequest // http requests
+		wantSessions int                 // number of sessions expected after the test
 	}{
 		{
 			name: "basic",
@@ -707,6 +708,19 @@ func TestStreamableServerTransport(t *testing.T) {
 					wantMessages:   []jsonrpc.Message{resp(2, &CallToolResult{Content: []Content{}}, nil)},
 				},
 			},
+			wantSessions: 1,
+		},
+		{
+			name: "uninitialized",
+			requests: []streamableRequest{
+				{
+					method:             "POST",
+					messages:           []jsonrpc.Message{req(2, "tools/call", &CallToolParams{Name: "tool"})},
+					wantStatusCode:     http.StatusOK,
+					wantBodyContaining: "invalid during session initialization",
+				},
+			},
+			wantSessions: 0,
 		},
 		{
 			name: "accept headers",
@@ -741,6 +755,7 @@ func TestStreamableServerTransport(t *testing.T) {
 					wantMessages:   []jsonrpc.Message{resp(4, &CallToolResult{Content: []Content{}}, nil)},
 				},
 			},
+			wantSessions: 1,
 		},
 		{
 			name: "protocol version headers",
@@ -756,6 +771,7 @@ func TestStreamableServerTransport(t *testing.T) {
 					wantSessionID:      false,        // could be true, but shouldn't matter
 				},
 			},
+			wantSessions: 1,
 		},
 		{
 			name: "batch rejected on 2025-06-18",
@@ -775,6 +791,7 @@ func TestStreamableServerTransport(t *testing.T) {
 					wantBodyContaining: "batch",
 				},
 			},
+			wantSessions: 1,
 		},
 		{
 			name: "batch accepted on 2025-03-26",
@@ -797,6 +814,7 @@ func TestStreamableServerTransport(t *testing.T) {
 					},
 				},
 			},
+			wantSessions: 1,
 		},
 		{
 			name: "tool notification",
@@ -821,6 +839,7 @@ func TestStreamableServerTransport(t *testing.T) {
 					},
 				},
 			},
+			wantSessions: 1,
 		},
 		{
 			name: "tool upcall",
@@ -853,6 +872,7 @@ func TestStreamableServerTransport(t *testing.T) {
 					},
 				},
 			},
+			wantSessions: 1,
 		},
 		{
 			name: "background",
@@ -915,6 +935,7 @@ func TestStreamableServerTransport(t *testing.T) {
 					headers: map[string][]string{"Accept": nil},
 				},
 			},
+			wantSessions: 0, // session deleted
 		},
 		{
 			name: "errors",
@@ -946,6 +967,7 @@ func TestStreamableServerTransport(t *testing.T) {
 					})},
 				},
 			},
+			wantSessions: 0,
 		},
 	}
 
@@ -972,6 +994,9 @@ func TestStreamableServerTransport(t *testing.T) {
 			defer handler.closeAll()
 
 			testStreamableHandler(t, handler, test.requests)
+			if got := len(slices.Collect(server.Sessions())); got != test.wantSessions {
+				t.Errorf("after test, got %d sessions, want %d", got, test.wantSessions)
+			}
 		})
 	}
 }
