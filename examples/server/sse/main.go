@@ -48,10 +48,10 @@ func main() {
 	addr := fmt.Sprintf("%s:%s", *host, *port)
 
 	server1 := mcp.NewServer(&mcp.Implementation{Name: "greeter1"}, nil)
-	mcp.AddTool(server1, &mcp.Tool{Name: "greet1", Description: "say hi"}, SayHi)
+	mcp.AddTool(server1, &mcp.Tool{Name: "greet 1", Description: "say hi"}, SayHi)
 
 	server2 := mcp.NewServer(&mcp.Implementation{Name: "greeter2"}, nil)
-	mcp.AddTool(server2, &mcp.Tool{Name: "greet2", Description: "say hello"}, SayHi)
+	mcp.AddTool(server2, &mcp.Tool{Name: "greet 2", Description: "say hello"}, SayHi)
 
 	log.Printf("MCP servers serving at %s", addr)
 	handler := mcp.NewSSEHandler(func(request *http.Request) *mcp.Server {
